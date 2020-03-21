@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 5518428267789538098}
   m_Layer: 0
   m_Name: Key
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -95,8 +95,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tmp: {x: 0, y: 0, z: 0}
-  HitEvent: {fileID: 5369926168603018781, guid: c2966f2e6268f14478de902b3a1875a5,
-    type: 3}
+  HitEvent: {fileID: 0}
 --- !u!61 &3551621628452710330
 BoxCollider2D:
   m_ObjectHideFlags: 0

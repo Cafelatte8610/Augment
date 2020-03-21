@@ -5,6 +5,7 @@ using UnityEngine;
 public class KeyPrint : MonoBehaviour
 {
     public midi_analyz midi_analyz;
+    public GameObject Cube;
     private bool [,] KeyCode;
     // Start is called before the first frame update
     void Start()
@@ -22,7 +23,8 @@ public class KeyPrint : MonoBehaviour
             for(int j=40;j<101;j++){
                 if(KeyCode[j,i]){
                     GameObject Notu=(GameObject)Resources.Load("Key");
-                    Instantiate (Notu, new Vector3((((j+1)-70)*5),150f,-1f), Quaternion.identity);
+                    GameObject Key_obj=Instantiate (Notu, new Vector3((((j+1)-70)*5),150f,-1f), Quaternion.identity) as GameObject;
+                    Key_obj.GetComponent<KeyEvent>().GetObj(Cube);
                 }
             }
             CrTime = 0f;
