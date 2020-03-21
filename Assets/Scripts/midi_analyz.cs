@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -238,14 +238,17 @@ public struct TrackChunkData
                                         break;
                                     case 0x7b:
                                         break;
-                  
-                                    case 0x7c:  // オムニモードオフ
+                                    // オムニモードオフ
+                                    case 0x7c:
                                         break;
-                                    case 0x7d:  // オムニモードオン
+                                    // オムニモードオン
+                                    case 0x7d:
                                         break;
-                                    case 0x7e:  // モノモードオン
+                                    // モノモードオン
+                                    case 0x7e: 
                                         break;
-                                    case 0x7f:  // モノモードオン
+                                     // モノモードオン
+                                    case 0x7f: 
                                         break;
                                 }
                             }
