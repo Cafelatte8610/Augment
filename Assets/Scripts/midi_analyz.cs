@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -11,23 +11,23 @@ public class midi_analyz : MonoBehaviour {
 
 public enum NoteType
 {
-  Normal,      // 通常ノーツ
-  LongStart,   // ロング開始
-  LongEnd,     // ロング終端
+  Normal,      
+  LongStart,   
+  LongEnd,     
 }
 
 public struct NoteData
 {
-  public int eventTime;  // ノーツタイミング(ms)
-  public int laneIndex;  // レーン番号
-  public NoteType type;   // ノーツの種類
+  public int eventTime;  
+  public int laneIndex;  
+  public NoteType type;  
 }
 
 public struct TempoData
 {
-  public int eventTime;  // BPM変化のタイミング(ms)
-  public float bpm;      // BPM値
-  public float tick;      // tick値
+  public int eventTime;  
+  public float bpm;      
+  public float tick;     
 }
 
 
@@ -35,19 +35,19 @@ public struct TempoData
 /// ヘッダーチャンク情報を格納する構造体
 public struct HeaderChunkData
 {
-    public byte[] chunkID;      // チャンクのIDを示す(4byte)
-    public int dataLength;      // チャンクのデータ長(4byte)
-    public short format;        // MIDIファイルフォーマット(2byte)
-    public short tracks;        // トラック数(2byte)
-    public short division;      // タイムベース MIDI独自の時間の最小単位をtickと呼び、4分音符あたりのtick数がタイムベース 大体480(2byte)
+    public byte[] chunkID;     
+    public int dataLength;     
+    public short format;       
+    public short tracks;       
+    public short division;     
 };
 
 /// トラックチャンク情報を格納する構造体
 public struct TrackChunkData
 {
-    public byte[] chunkID;      // チャンクのIDを示す(4byte)
-    public int dataLength;      // チャンクのデータ長(4byte)
-    public byte[] data;         // 演奏情報が入っているデータ
+    public byte[] chunkID;     
+    public int dataLength;     
+    public byte[] data;        
 };
     
     public bool Ready=false;
@@ -70,7 +70,7 @@ public struct TrackChunkData
             // 自分のPCがリトルエンディアンならバイト順を逆に
             if (BitConverter.IsLittleEndian)
             {
-                // ヘッダ部のデータ長(値は6固定)
+                // ヘッダ部のデータ長
                 var byteArray = reader.ReadBytes(4);
                 Array.Reverse(byteArray);
                 headerCH.dataLength = BitConverter.ToInt32(byteArray, 0);
@@ -89,7 +89,7 @@ public struct TrackChunkData
             }
             else
             {
-                // ヘッダ部のデータ長(値は6固定)
+                // ヘッダ部のデータ長
                 headerCH.dataLength = BitConverter.ToInt32(reader.ReadBytes(4), 0);
                 // フォーマット(2byte)
                 headerCH.format = BitConverter.ToInt16(reader.ReadBytes(2), 0);
@@ -99,10 +99,10 @@ public struct TrackChunkData
                 headerCH.division = BitConverter.ToInt16(reader.ReadBytes(2), 0);
             }
             
-            // トラックチャンク侵入
+            // トラックチャンク
             var trackCH = new TrackChunkData[headerCH.tracks];
             
-            // トラック数ぶん
+            // トラック数
             for(int i=0;i<headerCH.tracks;i++){
 
                 // チャンクID
@@ -111,7 +111,7 @@ public struct TrackChunkData
                 // 自分のPCがリトルエンディアンなら変換する
                 if (BitConverter.IsLittleEndian)
                 {
-                    // トラックのデータ長読み込み(値は6固定)
+                    // トラックのデータ長読み込み
                     var byteArray = reader.ReadBytes(4);
                     Array.Reverse(byteArray);
                     trackCH[i].dataLength = BitConverter.ToInt32(byteArray, 0);
@@ -124,7 +124,7 @@ public struct TrackChunkData
                 // データ部読み込み
                 trackCH[i].data=reader.ReadBytes(trackCH[i].dataLength);
 
-                // トラックデータ解析に回す
+                // トラックデータ解析へ
                 TrackDataAnalys(trackCH[i].data,headerCH);
             }
         }
@@ -132,9 +132,9 @@ public struct TrackChunkData
 
     void TrackDataAnalys(byte[] data,HeaderChunkData headerCH){
         // Debug.Log(data.Length);
-        uint CrTime=0;                     // 現在の時間 [ ms ]
-        byte statusByte=0;                 // ステータスバイト
-        bool[] longFlags=new bool[128];    // ロングノーツ用フラグ
+        uint CrTime=0;                    
+        byte statusByte=0;                
+        bool[] longFlags=new bool[128];   
 
         for(int i=0;i<data.Length;){
 
@@ -145,24 +145,16 @@ public struct TrackChunkData
 
             while(true){
                 var tmp = data[i++];
-
-                // 下位7bitを格納
                 deltaTime |= (tmp & (uint)0x7f);
-
-                // 最上位1bitが0ならデータ終了
                 if ((tmp & 0x80) == 0) break;
-
-                // 次の下位7bit用にビット移動
                 deltaTime = deltaTime << 7;
             }
 
             // 現在の時間にデルタタイムを足す
             CrTime+=deltaTime;
-            
-            /* ランニングステータスチェック */
             if (data[i] >= 0x80)
             {
-                statusByte = data[i++]; // ステータスバイト保存
+                statusByte = data[i++];
             }
             //else:ランニングステータス適応(前回のステータスバイトを使いまわす)
             
@@ -174,14 +166,10 @@ public struct TrackChunkData
                     /* チャンネルメッセージ */
                     // ノートオフ
                     case 0x80:
-                        dataByte0 = data[i++];// どのキーが離されたか
-                        // ベロシティ値
+                        dataByte0 = data[i++];
                         dataByte1 = data[i++];
-
-                        // 前のレーンがロングノーツなら
                         if (longFlags[dataByte0])
                         {
-                            // ロング終点ノート情報生成
                             var note = new NoteData();
                             note.eventTime = (int)CrTime;
                             note.laneIndex = (int)dataByte0;
@@ -190,14 +178,13 @@ public struct TrackChunkData
                             // リストにつっこむ
                             noteList.Add(note);
 
-                            // ロングノーツフラグ解除
                             longFlags[note.laneIndex] = false;
                         }
                         break;
-                    case 0x90:  // ノートオン(ノートオフが呼ばれるまでは押しっぱなし扱い)
+                     // ノートオン(ノートオフが呼ばれるまでは押しっぱなし扱い)
+                    case 0x90:
                             // どのキーが押されたか
                             dataByte0 = data[i++];
-                            // ベロシティ値という名の音の強さ。ノートオフメッセージの代わりにここで0を送ってくるタイプもある
                             dataByte1 = data[i++];
 
                             {
@@ -206,11 +193,9 @@ public struct TrackChunkData
                                 note.eventTime = (int)CrTime;
                                 note.laneIndex = (int)dataByte0;
                                 note.type = NoteType.Normal;
-                                // 独自でやっている。ベロシティ値が最大のときのみロングの始点とする
                                 if (dataByte1 == 127)
                                 {
                                    note.type = NoteType.LongStart;
-                                   // ロングノーツフラグセット
                                    longFlags[note.laneIndex] = true;
                                 }
                                 // ノートオフイベントではなく、ベロシティ値0をノートオフとして保存する形式もあるので対応
@@ -220,7 +205,6 @@ public struct TrackChunkData
                                     if (longFlags[note.laneIndex])
                                     {
                                         note.type = NoteType.LongEnd;
-                                        // ロングノーツフラグ解除
                                         longFlags[note.laneIndex] = false;
                                     }
                                 }
@@ -229,13 +213,11 @@ public struct TrackChunkData
                                 noteList.Add(note);
                             }
                             break;
-                        case 0xa0:  // ポリフォニック キープレッシャー(鍵盤楽器で、キーを押した状態でさらに押し込んだ際に、その圧力に応じて送信される)
+                        case 0xa0:
                             i += 2; // 使わないのでスルー
                             break;
-                        case 0xb0:  // コントロールチェンジ(音量、音質など様々な要素を制御するための命令)
-                            // コントロールする番号
+                        case 0xb0:
                             dataByte0 = data[i++];
-                            // 設定する値
                             dataByte1 = data[i++];
 
                             // ※0x00-0x77までがコントロールチェンジで、それ以上はチャンネルモードメッセージとして処理する
@@ -245,105 +227,109 @@ public struct TrackChunkData
                             }
                             else
                             {
-                                // チャンネルモードメッセージは一律データバイトを2つ使用している
-                                // チャンネルモードメッセージ
+                              
                                 switch (dataByte0)
                                 {
-                                    case 0x78:  // オールサウンドオフ
-                                        // 該当するチャンネルの発音中の音を直ちに消音する。後述のオールノートオフより強制力が強い。
+                                    case 0x78: 
                                         break;
-                                    case 0x79:  // リセットオールコントローラ
-                                        // 該当するチャンネルの全種類のコントロール値を初期化する。
+                                    case 0x79:
                                         break;
-                                    case 0x7a:  // ローカルコントロール
-                                        // オフ:鍵盤を弾くとMIDIメッセージは送信されるがピアノ自体から音は出ない
-                                        // オン:鍵盤を弾くと音源から音が出る(基本こっち)
+                                    case 0x7a:
                                         break;
-                                    case 0x7b:  // オールノートオフ
-                                        // 該当するチャンネルの発音中の音すべてに対してノートオフ命令を出す
+                                    case 0x7b:
                                         break;
-                                    /* MIDIモード設定 */
-                                    // オムニのオン・オフとモノ・ポリモードを組み合わせて4種類のモードがある
-                                    case 0x7c:  // オムニモードオフ
+                                    // オムニモードオフ
+                                    case 0x7c:
                                         break;
-                                    case 0x7d:  // オムニモードオン
+                                    // オムニモードオン
+                                    case 0x7d:
                                         break;
-                                    case 0x7e:  // モノモードオン
+                                    // モノモードオン
+                                    case 0x7e: 
                                         break;
-                                    case 0x7f:  // モノモードオン
+                                     // モノモードオン
+                                    case 0x7f: 
                                         break;
                                 }
                             }
                             break;
 
-                        case 0xc0:  // プログラムチェンジ(音色を変える命令)
+                        case 0xc0: 
                             i += 1;
                             break;
 
-                        case 0xd0:  // チャンネルプレッシャー(概ねポリフォニック キープレッシャーと同じだが、違いはそのチャンネルの全ノートナンバーに対して有効となる)
+                        case 0xd0: 
                             i += 1;
                             break;
 
-                        case 0xe0:  // ピッチベンド(ウォェーンウェューンの表現で使う)
+                        case 0xe0: 
                             i += 2;
-                            // ボルテのつまみみたいなのを実装する場合、ここの値が役立つかも
                             break;
                     }
                 }
 
-                /* システムエクスクルーシブ (SysEx) イベント*/
                 else if(statusByte == 0x70 || statusByte == 0x7f)
                 {
                     byte dataLength = data[i++];
                     i += dataLength;
                 }
 
-                /* メタイベント*/
                 else if(statusByte == 0xff)
                 {
-                    // メタイベントの番号
+　　　　　　　　　　　// メタイベント
                     byte metaEventID = data[i++];
-                    // データ長
                     byte dataLength = data[i++];
 
                     switch (metaEventID)
                     {
-                        case 0x00:  // シーケンスメッセージ
+                        // シーケンスメッセージ
+                        case 0x00:
                             i += dataLength;
                             break;
-                        case 0x01:  // テキストイベント
+                        // テキストイベント
+                        case 0x01:  
                             i += dataLength;
                             break;
-                        case 0x02:  // 著作権表示
+                        // 著作権表示
+                        case 0x02:  
                             i += dataLength;
                             break;
-                        case 0x03:  // シーケンス/トラック名
+                        // シーケンス/トラック名
+                        case 0x03:  
                             i += dataLength;
                             break;
-                        case 0x04:  // 楽器名
+                        // 楽器名
+                        case 0x04:  
                             i += dataLength;
                             break;
-                        case 0x05:  // 歌詞
+                        // 歌詞
+                        case 0x05: 
                             i += dataLength;
                             break;
-                        case 0x06:  // マーカー
+                        // マーカー
+                        case 0x06:  
                             i += dataLength;
                             break;
-                        case 0x07:  // キューポイント
+                        // キューポイント
+                        case 0x07:  
                             i += dataLength;
                             break;
-                        case 0x20:  // MIDIチャンネルプリフィクス
+                        // MIDIチャンネルプリフィクス
+                        case 0x20:  
                             i += dataLength;
                             break;
-                        case 0x21:  // MIDIポートプリフィックス
+                        // MIDIポートプリフィックス
+                        case 0x21:  
                             i += dataLength;
                             break;
-                        case 0x2f:  // トラック終了
+                        // トラック終了
+                        case 0x2f:  
                             i += dataLength;
                             Fintrack=true;
-                            // ここでループを抜けても良い
+                            // ここでループを抜ける
                             break;
-                        case 0x51:  // テンポ変更
+                        // テンポ変更
+                        case 0x51:  
                             {
                                 // テンポ変更情報リストに格納する
                                 var tempoData = new TempoData();
@@ -370,17 +356,21 @@ public struct TrackChunkData
                                 tempoList.Add(tempoData);
                             }
                             break;
-                        case 0x54:  // SMTPEオフセット
+                        // SMTPEオフセット
+                        case 0x54: 
                             i += dataLength;
                             break;
-                        case 0x58:  // 拍子
-                            i += dataLength;
-                            // 小節線を表示させるなら使えるかも
-                            break;
-                        case 0x59:  // 調号
+                        // 拍子
+                        case 0x58:
+                        　　// 小節線を表示させるなら使えるかも
                             i += dataLength;
                             break;
-                        case 0x7f:  // シーケンサ固有メタイベント
+                        // 調号
+                        case 0x59:  
+                            i += dataLength;
+                            break;
+                        // シーケンサ固有メタイベント
+                        case 0x7f:  
                             i += dataLength;
                             break;
                     }
@@ -417,7 +407,8 @@ public struct TrackChunkData
                     NoteData note = noteList[i];
 
                     int timeDifference = noteList[i].eventTime - tempTempoList[j].eventTime;
-                    note.eventTime = (int)(timeDifference * tempTempoList[j].tick) + tempoList[j].eventTime;   // 計算後のテンポ変更イベント時間+その時間
+                  　// 計算後のテンポ変更イベント時間+その時間
+                    note.eventTime = (int)(timeDifference * tempTempoList[j].tick) + tempoList[j].eventTime;   
                     noteList[i] = note;
                     break;
                 }
@@ -455,22 +446,25 @@ public struct TrackChunkData
         Ready=true;
     }
     
-    // private int i=0;
-    // private float CrTime;
-    // void Update()
-    // {
-    //     if(Ready){
-    //         CrTime += Time.deltaTime;
-    //         if(CrTime > 0.1){
-    //             for(int j=40;j<101;j++){
-    //                 if(KeyCode[j,i]){
-    //                     GameObject Notu=(GameObject)Resources.Load("Key");
-    //                     Instantiate (Notu, new Vector3((((j+1)-70)*5),150f,-1f), Quaternion.identity);
-    //                 }
-    //             }
-    //             CrTime = 0f;
-    //             i++;
-    //         }
-    //     }
-    // }
+
+
+    private int i=0;
+    private float CrTime;
+    void Update()
+    {
+        if(Ready){
+            CrTime += Time.deltaTime;
+            if(CrTime > 0.1){
+                for(int j=40;j<101;j++){
+                    if(KeyCode[j,i]){
+                        GameObject Notu=(GameObject)Resources.Load("Key");
+                        Instantiate (Notu, new Vector3((((j+1)-70)*5),150f,-1f), Quaternion.identity);
+                    }
+                }
+                CrTime = 0f;
+                i++;
+            }
+        }
+    }
 }
+
