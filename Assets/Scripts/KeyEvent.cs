@@ -23,7 +23,7 @@ public class KeyEvent : MonoBehaviour
     }
     // public bool[] key= new bool[88];
     void Update(){
-        if(HitEvent==null) Destroy(this.gameObject);
+        if(HitEvent == null) Destroy(this.gameObject);
         tmp = this.gameObject.transform.position;
         // bool[] Key=MicSpectrumAnalyz.key_judg;
         if(tmp.y<-82f && tmp.y>-88f) {

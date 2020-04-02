@@ -6,12 +6,14 @@ using DG.Tweening;
 
 public class HitEvent : MonoBehaviour
 {
-    int Combo=0;
+    int Combo=0,maxCombo=0,point=0;
     public MicSpectrumAnalyz MicSpectrumanalyz;
     public bool[] key_judg = new bool[88];
 
-    public GameObject Combo_obj;
+    public GameObject Combo_obj,Result_obj;
     
+    public midi_analyz midi_analyz;
+
     Transform Text_trans;
     Vector3 beTrans;
     // Start is called before the first frame update
@@ -47,11 +49,18 @@ public class HitEvent : MonoBehaviour
     }
     void Combo_pro(){
         Combo++;
+        point++;
+        maxCombo=System.Math.Max(maxCombo,Combo);
         Text Combo_Txt=Combo_obj.GetComponent<Text>();
         // Text_trans.(new Vector3(1.5f, 1.5f),0.3f);
         Text_trans.DOScale(new Vector3(1.1f, 1.1f),0.3f).SetEase(Ease.Linear);
         Text_trans.DOScale(new Vector3(1.0f/1.1f, 1.0f/1.1f),0.1f).SetEase(Ease.Linear);
         Combo_Txt.text=Combo+System.Environment.NewLine+"Combo";
+    }
+
+    public void fin_Music(){
+        Text Result_text=Result_obj.GetComponent<Text>();
+        Result_text.text="Score："+point*107+System.Environment.NewLine+"Perfection："+(int)(((double)point/(double)midi_analyz.noteList.Count)*100)+" %"+System.Environment.NewLine+"Max Combo："+maxCombo;
     }
 
     public void fin_Combo(){

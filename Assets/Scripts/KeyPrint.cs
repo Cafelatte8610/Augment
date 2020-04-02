@@ -5,13 +5,17 @@ using UnityEngine;
 public class KeyPrint : MonoBehaviour
 {
     public midi_analyz midi_analyz;
+    public HitEvent HitEvent;
     public GameObject Cube;
     private bool [,] KeyCode;
+    int EndSign;
     // Start is called before the first frame update
     void Start()
     {
         KeyCode=midi_analyz.KeyCode;
+        EndSign=midi_analyz.EndSign;
     }
+    
     
 
     private int i=0;
@@ -29,6 +33,10 @@ public class KeyPrint : MonoBehaviour
             }
             CrTime = 0f;
             i++;
+        }
+        if(i>=EndSign+100){
+            HitEvent.fin_Combo();
+            HitEvent.fin_Music();
         }
     }
 }
