@@ -419,12 +419,18 @@ public struct TrackChunkData
     
     public bool [,] KeyCode;
     // public bool Ready=false;
+    public int EndSign=0;
 
     void Start(){
         // var fileName = @"C:\\Users\\famil\\OneDrive\\ドキュメント\\GitHub\\music_game\\test 3D\\Assets\\Scenes\\doremi.mid";
         // var fileName = @"C:\\Users\\famil\\OneDrive\\ドキュメント\\GitHub\\music_game\\test 3D\\doremi.mid";
-        var fileName=@"C:\\Users\\famil\\OneDrive\\ドキュメント\\MIDI\\Alice in 冷凍庫 - コピー.mid";
-        // var fileName=@"C:\Users\famil\Downloads\toruko.mid";
+        // var fileName=@"C:\\Users\\famil\\OneDrive\\ドキュメント\\MIDI\\Alice in 冷凍庫 - コピー.mid";
+        var fileName=@"C:\Users\famil\Downloads\toruko.mid";
+        string ext = System.IO.Path.GetExtension(fileName); //extには".jpg"が代入されます。
+
+        if(ext!=".mid"){
+            // エラーメッセージ
+        }
 
         LoadMSF(fileName);
         ModificationEventTimes();
@@ -436,9 +442,12 @@ public struct TrackChunkData
             // Debug.Log(noteList[i].laneIndex+" , "+noteList[i].eventTime/100);
             if(noteList[i].type != NoteType.LongEnd) KeyCode[noteList[i].laneIndex , noteList[i].eventTime/100] = true;
         }
+        EndSign=noteList[noteList.Count-1].eventTime/100;
         Ready=true;
     }
     
+
+
     private int i=0;
     private float CrTime;
     void Update()
@@ -458,3 +467,4 @@ public struct TrackChunkData
         }
     }
 }
+
